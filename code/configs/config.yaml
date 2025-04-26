@@ -1,0 +1,24 @@
+data_path: /path/to/kinetics/
+frame_aug: grid
+dropout: 0.1
+clip_len: 4
+temp: 0.05
+model_type: scratch
+workers: 16
+batch_size: 20
+cache_dataset: True
+data_parallel: True
+visualize: True
+lr: 0.0001
+# Optional fields that your script might expect
+device: cuda
+epochs: 50
+start_epoch: 0
+frame_skip: 1
+clips_per_video: 10
+lr_milestones: [0.6, 0.8]
+lr_gamma: 0.1
+output_dir: ./checkpoints
+fast_test: False
+resume: null
+partial_reload: null
