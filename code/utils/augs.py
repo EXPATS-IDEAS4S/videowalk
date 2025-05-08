@@ -7,8 +7,8 @@ from torchvision import transforms
 import numpy as np
 from PIL import Image
 
-IMG_MEAN = (0.4914, 0.4822, 0.4465)
-IMG_STD  = (0.2023, 0.1994, 0.2010)
+IMG_MEAN = (0.791365, 0.791365, 0.791365)
+IMG_STD  = (0.201631, 0.201631, 0.201631)
 NORM = [transforms.ToTensor(), 
         transforms.Normalize(IMG_MEAN, IMG_STD)]
 

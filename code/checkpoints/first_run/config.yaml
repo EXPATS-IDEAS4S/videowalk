@@ -1,0 +1,38 @@
+batch_size: 10
+cache_dataset: true
+clip_len: 8
+clips_per_video: 10
+data_parallel: true
+data_path: /home/Daniele/codes/videowalk/code/data_preparation/filelist.txt
+device: cuda
+dropout: 0.1
+epochs: 30
+fast_test: false
+frame_aug: grid
+frame_skip: 1
+frame_transforms: none
+img_size: 100
+lr: 0.0001
+lr_gamma: 0.1
+lr_milestones:
+- 10
+- 20
+model_type: scratch
+name: videowalk_first_run
+output_dir: checkpoints/first_run
+partial_reload: null
+patch_size:
+- 32
+- 32
+- 3
+port: 8097
+print_freq: 1
+remove_layers:
+- layer4
+resume: null
+server: localhost
+start_epoch: 0
+temp: 0.05
+visdom: false
+visualize: false
+workers: 12

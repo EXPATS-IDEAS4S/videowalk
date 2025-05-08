@@ -10,6 +10,7 @@ def common_args(parser):
 def test_args():
     # Parse arguments
     parser = argparse.ArgumentParser(description='Label Propagation')
+    parser.add_argument('--config', type=str, help='Path to YAML config file')
 
     # Datasets
     parser.add_argument('--workers', default=4, type=int, metavar='N',
@@ -83,7 +84,7 @@ def train_args():
     parser.add_argument('--device', default='cuda', help='device')
     parser.add_argument('--clip-len', default=8, type=int, metavar='N',
                         help='number of frames per clip')
-    parser.add_argument('--clips-per-video', default=5, type=int, metavar='N',
+    parser.add_argument('--clips-per-video', default=4, type=int, metavar='N',
                         help='maximum number of clips per video to consider')
     parser.add_argument('-b', '--batch-size', default=8, type=int)
     parser.add_argument('--epochs', default=25, type=int, metavar='N',
@@ -101,7 +102,7 @@ def train_args():
     parser.add_argument('--lr-milestones', nargs='+', default=[20, 30, 40], type=int, help='decrease lr on milestones')
     parser.add_argument('--lr-gamma', default=0.3, type=float, help='decrease lr by a factor of lr-gamma')
     parser.add_argument('--lr-warmup-epochs', default=0, type=int, help='number of warmup epochs')
-    parser.add_argument('--print-freq', default=10, type=int, help='print frequency')
+    parser.add_argument('--print-freq', default=1, type=int, help='print frequency')
     parser.add_argument('--output-dir', default='auto', help='path where to save')
     parser.add_argument('--resume', default='', help='resume from checkpoint')
     parser.add_argument('--partial-reload', default='', help='reload net from checkpoint, ignoring keys that are not in current model')

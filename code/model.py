@@ -32,10 +32,23 @@ class CRW(nn.Module):
         self.sk_targets = getattr(args, 'sk_targets', False)
         self.vis = vis
 
-    def infer_dims(self):
+    def infer_dims_old(self):
         in_sz = 256
         dummy = torch.zeros(1, 3, 1, in_sz, in_sz).to(next(self.encoder.parameters()).device)
         dummy_out = self.encoder(dummy)
+        self.enc_hid_dim = dummy_out.shape[1]
+        self.map_scale = in_sz // dummy_out.shape[-1]
+
+    def infer_dims(self):
+        in_sz = 256
+        dummy = torch.zeros(1, 3, 1, in_sz, in_sz).to(next(self.encoder.parameters()).device)
+
+        # Temporarily set encoder to eval mode and use no_grad to avoid BatchNorm crash
+        self.encoder.eval()
+        with torch.no_grad():
+            dummy_out = self.encoder(dummy)
+        self.encoder.train()  # Restore training mode
+
         self.enc_hid_dim = dummy_out.shape[1]
         self.map_scale = in_sz // dummy_out.shape[-1]
 
