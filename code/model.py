@@ -55,7 +55,7 @@ class CRW(nn.Module):
     def make_head(self, depth=1):
         head = []
         if depth >= 0:
-            dims = [self.enc_hid_dim] + [self.enc_hid_dim] * depth + [128]
+            dims = [self.enc_hid_dim] + [self.enc_hid_dim] * depth + [64]
             for d1, d2 in zip(dims, dims[1:]):
                 h = nn.Linear(d1, d2)
                 head += [h, nn.ReLU()]
@@ -71,6 +71,7 @@ class CRW(nn.Module):
         in_t_dim = x1.ndim
         if in_t_dim < 4:  # add in time dimension if not there
             x1, x2 = x1.unsqueeze(-2), x2.unsqueeze(-2)
+        #print(x1.shape, x2.shape)
 
         A = torch.einsum('bctn,bctm->btnm', x1, x2)
         # if self.restrict is not None:

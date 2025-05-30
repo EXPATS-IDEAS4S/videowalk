@@ -10,11 +10,12 @@ from sklearn.decomposition import PCA
 #import umap
 
 # === CONFIGURATION ===
-random.seed(0)
-np.random.seed(0)
+n_seed = 42
+random.seed(n_seed)
+np.random.seed(n_seed)
 
 epoch = 29
-features_dir = f"/data1/fig/videowalk/run-1_30-epochs_8k-clips/extracted_features/epoch_{epoch}/"
+features_dir = f"/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/extracted_features/epoch_{epoch}/"
 
 subsample_num = 500  # number of unique video clips to highlight
 method = "tSNE"  # method to use for dimensionality reduction (tSNE, UMAP)
@@ -64,19 +65,19 @@ print(selected_feats.shape)
 
 # === RUN t-SNE ===
 
-# normalize the features before t-SNE
-scaler = StandardScaler()
-selected_feats = scaler.fit_transform(selected_feats)
+# # normalize the features before t-SNE
+# scaler = StandardScaler()
+# selected_feats = scaler.fit_transform(selected_feats)
 
-# Apply PCA to reduce dimensionality before t-SNE
-pca = PCA(n_components=50, random_state=42)
-selected_feats = pca.fit_transform(selected_feats)
+# # Apply PCA to reduce dimensionality before t-SNE
+# pca = PCA(n_components=50, random_state=42)
+# selected_feats = pca.fit_transform(selected_feats)
 
 print(f"Running {method}...")
 if method == "tSNE":
     arg_name = "perplexity"
     arg_value = 50
-    method_obj = TSNE(n_components=2, perplexity=arg_value, init='pca', random_state=42)
+    method_obj = TSNE(n_components=2, perplexity=arg_value, init='pca', random_state=n_seed)
 elif method == "UMAP":
     arg_name = "n_neighbors"
     arg_value = 15
@@ -107,22 +108,22 @@ plt.figure(figsize=(10, 10))
 #plt.scatter(df_selected["tsne_x"], df_selected["tsne_y"], s=1, c="lightblue", alpha=0.5)
 
 # Plot selected videos with colors
-if aggregation:
-    plt.scatter(df_selected["tsne_x"], df_selected["tsne_y"], s=5, alpha=0.7, c="blue")
+# if aggregation:
+#     plt.scatter(df_selected["tsne_x"], df_selected["tsne_y"], s=5, alpha=0.7, c="blue")
+# else:
+if len(selected_videos)>1:
+    for i, video_id in enumerate(selected_videos):
+        clip_data = df_selected[df_selected["video_idx"] == video_id]
+        plt.scatter(clip_data["tsne_x"], clip_data["tsne_y"], s=5, alpha=0.8)#label=f"Clip {video_id}")
 else:
-    if len(selected_videos)>1:
-        for i, video_id in enumerate(selected_videos):
-            clip_data = df_selected[df_selected["video_idx"] == video_id]
-            plt.scatter(clip_data["tsne_x"], clip_data["tsne_y"], s=2, alpha=0.5)#label=f"Clip {video_id}")
-    else:
-        clip_data = df_selected[df_selected["video_idx"] == selected_videos[0]]
-        #find number of unique
-        frames = clip_data["frame_idx"].unique()
-        print(f"unique frames: {frames}")
-        # Loop over different frame index
-        for j, frame_id in enumerate(frames):
-            frame_data = clip_data[clip_data["frame_idx"] == frame_id]
-            plt.scatter(frame_data["tsne_x"], frame_data["tsne_y"], s=5, alpha=0.5)
+    clip_data = df_selected[df_selected["video_idx"] == selected_videos[0]]
+    #find number of unique
+    frames = clip_data["frame_idx"].unique()
+    print(f"unique frames: {frames}")
+    # Loop over different frame index
+    for j, frame_id in enumerate(frames):
+        frame_data = clip_data[clip_data["frame_idx"] == frame_id]
+        plt.scatter(frame_data["tsne_x"], frame_data["tsne_y"], s=5, alpha=0.5)
 
 plt.title(f"{method} ({arg_name} {arg_value}) of {subsample_num} Videos (Epoch {epoch})", fontsize=14, fontweight="bold")
 plt.xlabel("t-SNE 1", fontsize=12)

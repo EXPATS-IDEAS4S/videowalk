@@ -65,7 +65,7 @@ value_max = 300.0   # Example maximum value
 x_pixel = 100 
 y_pixel = 100 
 
-cloud_prm = 'IR_108' # IR_108, WV_062, cma
+cloud_prm = 'IR_108_cm' # IR_108, WV_062, cma
 
 n_crops = 4
 
@@ -118,7 +118,7 @@ for year in years:
                                 # Plot without axis mainting aspect rati
                                 fig, ax = plt.subplots(figsize=(x_pixel, y_pixel), dpi=1)
                                 frame = np.flipud(frame)
-                                ax.imshow(frame, cmap='gray', vmin=value_min, vmax=value_max)
+                                ax.imshow(frame, cmap='gray_r', vmin=value_min, vmax=value_max)
                                 ax.axis('off')  # Remove axis ticks and labels
                                 plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
 
@@ -134,6 +134,6 @@ for year in years:
                                 print( f' Saved {outpath}/{filename}/{cloud_prm}_{timestamp}.png')
 
                                         
-
+# 2677700 nohup.out
 
                             

@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 
 # Paths
-log_file = '/home/Daniele/codes/videowalk/code/checkpoints/first_run/nohup.out'
-out_dir = '/data1/fig/videowalk/run-1_30-epochs_8k-clips/'
+log_file = '/home/Daniele/codes/videowalk/code/nohup.out'
+out_dir = '/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/'
 
 # Regex to extract epoch, loss, and lr
 pattern = re.compile(r"Epoch: \[(\d+)]\s+\[\d+/\d+].*?lr: ([\deE\.-]+).*?loss: ([\d\.]+)")

@@ -11,7 +11,8 @@ IMG_MEAN = (0.791365, 0.791365, 0.791365)
 IMG_STD  = (0.201631, 0.201631, 0.201631)
 NORM = [transforms.ToTensor(), 
         transforms.Normalize(IMG_MEAN, IMG_STD)]
-
+#the value scaling from 0-255 to 0-1 is handled implicitly in ToTensor()
+#mean and std are for 0-1 range
 
 class MapTransform(object):
     def __init__(self, transforms, pil_convert=True):
@@ -67,12 +68,15 @@ def patch_grid(transform, shape=(64, 64, 3), stride=[0.5, 0.5]):
             x = x.numpy().transpose(1, 2, 0)
         elif 'PIL' in str(type(x)):
             x = np.array(x)#.transpose(2, 0, 1)
-        
+     
         winds = skimage.util.view_as_windows(x, shape, step=stride)
         winds = winds.reshape(-1, *winds.shape[-3:])
+        #print(winds.shape)
+
 
         P = [transform(spatial_jitter(w)) for w in winds]
         return torch.cat(P, dim=0)
+        #return torch.stack(P, dim=0)
 
     return aug
 

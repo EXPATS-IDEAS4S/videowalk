@@ -9,7 +9,7 @@ aggregate_by = "video"  # "frame" or "video"
 aggregation_mode = "mean"  # "mean", "sum", or "concat" TODO implement some other modes
 
 # === LOAD FEATURES AND METADATA ===
-features_dir = f"/data1/fig/videowalk/run-1_30-epochs_8k-clips/extracted_features/epoch_{epoch}/"
+features_dir = f"/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/extracted_features/epoch_{epoch}/"
 features_file = os.path.join(features_dir, "features.npy")
 metadata_file = os.path.join(features_dir, "features_metadata.json")
 

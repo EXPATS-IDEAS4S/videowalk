@@ -1,0 +1,42 @@
+# ==== Data Settings ====
+data_path: /data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/filelist.txt  # File listing your training clips
+img_size: 100                                  # Input frame size (HxW)
+clip_len: 8                                    # Number of frames per clip
+clips_per_video: 10                            # How many clips to sample from each video
+frame_skip: 1                                  # Number of frames to skip between sampled frames
+frame_aug: grid                                # Patch-based augmentation ("grid" creates fixed-size overlapping crops)
+frame_transforms: 'none'                       # No additional augmentation (since data is already cropped in domain)
+patch_size: [50, 50, 3]                        # Patch size used in 'grid' — will result in ~5x5 patches per frame
+cache_dataset: True                            # Preloads data into memory for faster training
+workers: 12                                     # Data loading worker threads
+
+# ==== Model Settings ====
+model_type: scratch                            # Training from scratch (alternatives: imagenet, moco)
+dropout: 0.1                                    # Dropout applied to the affinity matrix
+remove_layers: ['layer4']                      # Optional: remove deeper ResNet layers for smaller images
+temp: 0.05                                      # Softmax temperature for computing affinity
+data_parallel: True                             # Enable multi-GPU training (use with caution—requires CUDA setup)
+
+# ==== Training Settings ====
+device: cuda                                    # 'cuda' or 'cpu'
+batch_size: 10
+epochs: 30
+start_epoch: 0
+lr: 0.0001
+lr_milestones: [10, 20]                         # Epochs at which to decay learning rate
+lr_gamma: 0.1                                   # LR decay factor at each milestone
+resume: null                                    # Path to checkpoint for resuming training (if any)
+partial_reload: null                            # For partially reloading model weights
+fast_test: False                                # Debug mode — runs fewer batches
+print_freq: 1                                   # How often to print training progress
+
+# ==== Logging & Output ====
+output_dir: /data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/checkpoints             # Where to save checkpoints and logs
+name: 'videowalk_third_run'                     # Name of the experiment (used in log naming)
+visualize: False                                # If True, enables Visdom/W&B visualizations
+visdom: False                                   # Legacy support for Visdom server
+port: 8097                                      # Visdom server port
+server: 'localhost'                             # Visdom server address
+
+
+#nohup 2712623

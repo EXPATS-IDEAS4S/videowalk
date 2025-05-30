@@ -24,8 +24,8 @@ args = SimpleNamespace(**config_dict)
 
 # If resume or output_dir depends on epoch, adjust dynamically
 if 'epoch' in config_dict:
-    args.resume = f'/home/Daniele/codes/videowalk/code/checkpoints/first_run/model_{args.epoch}.pth'
-    args.output_dir = f'/data1/fig/videowalk/run-1_30-epochs_8k-clips/extracted_features/epoch_{args.epoch}'
+    args.resume = f'/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/checkpoints/model_{args.epoch}.pth'
+    args.output_dir = f'/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/extracted_features/epoch_{args.epoch}'
 
 os.makedirs(args.output_dir, exist_ok=True)
 
@@ -52,7 +52,6 @@ video_dataset = VideoList(
     random_clip=False
 )
 
-#TODO: create patching function
 
 dataloader = torch.utils.data.DataLoader(
     video_dataset,

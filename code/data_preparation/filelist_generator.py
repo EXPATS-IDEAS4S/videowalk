@@ -37,8 +37,8 @@ def generate_filelist(root_dir,
     print(f"Filelist saved to: {output_file}")
 
 # Run the function
-root_dir='/data1/crops/random_walk_frames/IR_108/train_256'
-output_file='filelist.txt'
+root_dir='/data1/crops/random_walk_frames/IR_108_cm/train_256'
+output_file='/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/filelist.txt'
 valid_exts={'.jpg', '.png'}
 generate_filelist(root_dir, output_file,valid_exts)
 
