@@ -5,86 +5,13 @@ import os
 import pandas as pd
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from PIL import Image
-from PIL import ImageOps
+import sys
 
-def compute_tsne(input_npy_path, output_npy_path, perplexity=30, random_state=42):
-    """
-    Loads affinity vectors, applies t-SNE, and saves reduced features to a .npy file.
-    
-    Args:
-        input_npy_path (str): Path to the input .npy file (shape: [N, D]).
-        output_npy_path (str): Path to save the reduced 2D features (shape: [N, 2]).
-        perplexity (int): t-SNE perplexity parameter.
-        random_state (int): Random seed.
-    """
-
-    X = np.load(input_npy_path)
-    print(f"[t-SNE] Loaded input with shape: {X.shape}")
-
-    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=random_state, init='pca')
-    X_reduced = tsne.fit_transform(X)
-    print(f"[t-SNE] Reduced shape: {X_reduced.shape}")
-
-    os.makedirs(os.path.dirname(output_npy_path), exist_ok=True)
-    np.save(output_npy_path, X_reduced)
-    print(f"[t-SNE] Saved reduced features to: {output_npy_path}")
+sys.path.append('/home/Daniele/codes/videowalk/code/check_training')
+from plot_video_embeddings import make_gif
 
 
-def save_csv_with_paths(tsne_npy_path, dir_vid, output_csv_path):
-    """
-    Combines 2D t-SNE features with corresponding video folder paths and saves as a CSV.
-    
-    Args:
-        tsne_npy_path (str): Path to .npy file containing 2D features (shape: [N, 2]).
-        dir_vid (str): Directory containing one subfolder per video, in order.
-        output_csv_path (str): Path to save the output CSV.
-    """
-    # Load t-SNE data
-    X_reduced = np.load(tsne_npy_path)
-    print(f"[CSV] Loaded reduced features with shape: {X_reduced.shape}")
-
-    # List subfolders (e.g., one per video)
-    subfolders = sorted([f.path for f in os.scandir(dir_vid) if f.is_dir()])
-    print(f"[CSV] Found {len(subfolders)} subfolders in: {dir_vid}")
-
-    if len(subfolders) != X_reduced.shape[0]:
-        raise ValueError(f"Mismatch: {len(subfolders)} subfolders vs {X_reduced.shape[0]} feature rows")
-
-    # Create DataFrame
-    df = pd.DataFrame(X_reduced, columns=["component_1", "component_2"])
-    df["video_path"] = subfolders
-
-    # Save CSV
-    os.makedirs(os.path.dirname(output_csv_path), exist_ok=True)
-    df.to_csv(output_csv_path, index=False)
-    print(f"[CSV] Saved CSV to: {output_csv_path}")
-
-
-
-def plot_tsne(tsne_npy_path, output_plot_path, title="t-SNE of Affinity Vectors"):
-    """
-    Loads 2D t-SNE features and plots a scatter plot.
-    
-    Args:
-        tsne_npy_path (str): Path to the saved 2D features .npy file.
-        output_plot_path (str): Path to save the scatter plot PNG.
-        title (str): Plot title.
-    """
-    X_reduced = np.load(tsne_npy_path)
-    print(f"[Plot] Loaded reduced features with shape: {X_reduced.shape}")
-
-    plt.figure(figsize=(8, 6))
-    plt.scatter(X_reduced[:, 0], X_reduced[:, 1], s=10, alpha=0.7, cmap='viridis')
-    plt.title(title)
-    plt.axis("off")
-
-    os.makedirs(os.path.dirname(output_plot_path), exist_ok=True)
-    plt.savefig(output_plot_path, dpi=200)
-    plt.close()
-    print(f"[Plot] Saved plot to: {output_plot_path}")
-
-
-def plot_embedding_frame(df_frame, out_path, grid_size=10, zoom=0.1):
+def plot_embedding_frame_old(df_frame, out_path, grid_size=10, zoom=0.1):
     fig, ax = plt.subplots(figsize=(10, 10))
     
     x = df_frame['component_1'].values
@@ -125,8 +52,7 @@ def plot_embedding_frame(df_frame, out_path, grid_size=10, zoom=0.1):
     plt.close()
     return frame_filename
 
-
-def make_gif(frame_image_paths, gif_path, duration=1000):
+def make_gif_old(frame_image_paths, gif_path, duration=1000):
     """
     Create a GIF from a list of image paths.
     """
@@ -156,17 +82,73 @@ if __name__ == "__main__":
     perplexity = 30
     reduced_npy = f"{main_dir}tsne_affinities_perp-{perplexity}.npy"
     plot_path = f"{main_dir}tsne_perp-{perplexity}_plot.png"
-    dir_vid = "/data1/crops/random_walk_frames/IR_108_cm/train_256/"
+    dir_vid = "/data1/crops/random_walk_frames/IR_108_cm_years-2013/train_256/"
     output_csv_path = f"{main_dir}tsne_affinities_with_paths_perp-{perplexity}.csv"
     n_frames = 8
     grid_size = 15
     zoom = 0.45
+    from_selected_indices = True  # Set to True if you want to use selected indices from a previous run
+    n_seed = 42
+    subsample_videos = 300
 
-    # Run steps
-    #compute_tsne(input_npy, reduced_npy, dir_vid, perplexity)
-    save_csv_with_paths(reduced_npy, dir_vid, output_csv_path)
-    #plot_tsne(reduced_npy, plot_path)
     
+    df = pd.read_csv(output_csv_path)#, usecols=['video_idx', 'tsne_x', 'tsne_y'])
+    #print(df)
+    # change component_1 and component_2 to tsne_x and tsne_y
+    df.rename(columns={'component_1': 'tsne_x', 'component_2': 'tsne_y'}, inplace=True)
+    
+    #add one column with video idx
+    df['video_idx'] = df.index
+    #print(df)
+
+    # Get sorted list of folder names (these are the real video names)
+    video_folders = sorted(os.listdir(dir_vid))
+    print(f"Found {len(video_folders)} video folders.")
+
+    # Add paths to dataframe
+    df['path'] = df['video_idx'].apply(lambda idx: os.path.join(dir_vid, video_folders[idx]))
+    
+    # Run steps
+    if from_selected_indices:
+        #Open selected index from npy file
+        selected_vid_dir = f'/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/extracted_features/epoch_29/frames_embedding_tSNE/'
+        selected_indices = np.load(os.path.join(selected_vid_dir, f"selected_video_indices_{subsample_videos}_seed_{n_seed}.npy"))
+        #print(f"Using selected indices: {selected_indices}")
+        
+        #filter datsframe for selected indices
+        df = df[df['video_idx'].isin(selected_indices)]
+        #print(df)
+    else:
+        # Get video idx from dataframe
+        unique_videos = df['video_idx'].unique()
+        
+        #set the seed
+        np.random.seed(n_seed)
+
+        # Select n_videos unique videos
+        selected_videos = sorted(np.random.choice(unique_videos, subsample_videos, replace=False))
+        np.save(os.path.join(main_dir, f"selected_video_indices_{subsample_videos}_seed_{n_seed}.npy"), selected_videos)
+    
+        #print(len(selected_videos))
+        df = df[df['video_idx'].isin(selected_videos)]
+  
+
+    make_gif(
+    main_dir,
+    df,
+    frame_times=n_frames,
+    method='tSNE-affinity',
+    n_videos=subsample_videos,
+    n_seed=n_seed,
+    use_grid=False,
+    zoom=zoom,
+    grid_size=grid_size,
+    gif_duration=1000  # in milliseconds
+)
+
+    
+    
+"""    
     frames_path_list = []
     for frame_idx in range(n_frames):
         # Construct frame-specific filename
@@ -174,7 +156,15 @@ if __name__ == "__main__":
         
         #open frame with video paths
         df_frame = pd.read_csv(output_csv_path)
-        #print(df_frame)
+        print(df_frame)
+
+        if from_selected_indices:
+            #add a column for video idx 
+            df_frame["video_idx"] = df_frame.index
+            
+            #select the video_idx corresponding to the selected indices
+            df_frame = df_frame[df_frame["video_idx"].isin(selected_indices)]
+            print(df_frame)
 
         # Add the frame filename to the path for matching
         df_frame["video_path"] = df_frame["video_path"].apply(lambda p: os.path.join(p, frame_filename))
@@ -189,4 +179,10 @@ if __name__ == "__main__":
         plot_embedding_frame(df_frame, out_path, grid_size, zoom)
     
     #make gif
-    make_gif( frames_path_list, main_dir+'embedding_video.gif',)
+    if from_selected_indices:
+        filename_gif = main_dir+'embedding_video_from_selected_indeces.gif'
+    else:
+        filename_gif = main_dir+'embedding_video.gif'
+    
+    make_gif( frames_path_list, filename_gif)
+"""

@@ -9,6 +9,7 @@ import random
 import sys
 import torch.nn.functional as F
 
+
 sys.path.append('/home/Daniele/codes/videowalk/code/')
 
 from model import CRW
@@ -55,9 +56,14 @@ dataloader = torch.utils.data.DataLoader(
 )
 
 # ------------------ Compute Patch-wise Affinity ------------------
+# Set seed for reproducibility
+n_seed = 42
+random.seed(n_seed)
+np.random.seed(n_seed)
 selected_idxs = random.sample(range(len(video_dataset)), k=10)
 all_affinity_vectors = []  # Shape: [num_videos, N*N*(T-1)]
 temperature = args.temp
+
 
 
 # Plotting function
@@ -155,6 +161,7 @@ with torch.no_grad():
         # Plot the whole affinity row for selected videos
         if video_idx in selected_idxs:
             plot_affinity_timeline(patch_affinities, video_idx, args.output_dir)
+
 
 # Save full array: [n_videos, N*N*(T-1)]
 all_affinity_vectors = np.stack(all_affinity_vectors)

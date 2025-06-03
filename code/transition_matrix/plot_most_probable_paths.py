@@ -33,19 +33,26 @@ def load_video_frames(video_dir, max_frames=8):
     frame_paths = sorted(glob.glob(os.path.join(video_dir, '*.png')))[:max_frames]
     return [Image.open(p).convert('RGB') for p in frame_paths]
 
-def plot_video_with_patch_paths(frames, affinity_vector, out_path, grid_size=(3, 3)):
+def plot_video_with_patch_paths(frames, affinity_vector, out_path, patch_size=(50, 50), stride=(25, 25)):
     T = len(frames)
-    N = grid_size[0] * grid_size[1]
-    patch_h = frames[0].height // grid_size[0]
-    patch_w = frames[0].width // grid_size[1]
+    img_h, img_w = frames[0].height, frames[0].width
+    ph, pw = patch_size
+    sh, sw = stride
+
+    # Compute patch top-left positions
+    patch_coords = []
+    for y in range(0, img_h - ph + 1, sh):
+        for x in range(0, img_w - pw + 1, sw):
+            patch_coords.append((x, y))
+    N = len(patch_coords)
 
     # Reshape affinity vector to (T-1, N, N)
-    A = affinity_vector.reshape((T-1, N, N))
+    A = affinity_vector.reshape((T - 1, N, N))
 
     fig, axs = plt.subplots(N, T, figsize=(T * 3, N * 3))
 
     for patch_start in range(N):
-        # Generate the most probable path starting from `patch_start`
+        # Trace most probable path from each patch
         path = [patch_start]
         for t in range(T - 1):
             next_patch = A[t, path[-1]].argmax()
@@ -58,14 +65,12 @@ def plot_video_with_patch_paths(frames, affinity_vector, out_path, grid_size=(3,
             if t == 0:
                 ax.set_ylabel(f'Patch {patch_start}', fontsize=10)
 
-            # Highlight current patch in red
-            patch_idx = path[t]
-            row = patch_idx // grid_size[1]
-            col = patch_idx % grid_size[1]
+            # Get top-left corner of patch
+            x, y = patch_coords[path[t]]
             rect = patches.Rectangle(
-                (col * patch_w, row * patch_h),
-                patch_w,
-                patch_h,
+                (x, y),
+                pw,
+                ph,
                 linewidth=2,
                 edgecolor='red',
                 facecolor='none'
