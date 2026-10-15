@@ -42,7 +42,7 @@ for item in response['Contents']:
     print(item['Key'])
 
 #Directory with the data to uplad
-years = [2013]
+years = [2013,2014,2015,2016,2017,2018,2019,2020]
 
 month_start = 4 #April
 month_end = 9 #Septeber
@@ -70,7 +70,8 @@ cloud_prm = 'IR_108_cm' # IR_108, WV_062, cma
 n_crops = 4
 
 #output_path =  f'/work/dcorradi/crops/{cloud_prm_str}_{years_str}_{x_pixel}x{y_pixel}_{domain_name}_{cropping_strategy}/'
-outpath = f'/data1/crops/random_walk_frames/{cloud_prm}/train_256'
+years_str = "-".join(str(y) for y in years)
+outpath = f'/data1/crops/random_walk_frames/{cloud_prm}_years-{years_str}/train_256'
 os.makedirs(outpath, exist_ok=True)
 
 for year in years:
@@ -134,6 +135,6 @@ for year in years:
                                 print( f' Saved {outpath}/{filename}/{cloud_prm}_{timestamp}.png')
 
                                         
-# 2677700 nohup.out
+# 2778039 nohup.out
 
                             

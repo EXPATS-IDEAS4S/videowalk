@@ -4,7 +4,7 @@ from collections import defaultdict
 
 # Paths
 log_file = '/home/Daniele/codes/videowalk/code/nohup.out'
-out_dir = '/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/'
+out_dir = '/data1/runs/videowalk/4_3x3_8_100x100_108-CMA_70k_500/'
 
 # Regex to extract epoch, loss, and lr
 pattern = re.compile(r"Epoch: \[(\d+)]\s+\[\d+/\d+].*?lr: ([\deE\.-]+).*?loss: ([\d\.]+)")

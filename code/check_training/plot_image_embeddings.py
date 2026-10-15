@@ -8,6 +8,7 @@ from tqdm import tqdm
 import skimage.util
 import matplotlib.cm as cm
 import matplotlib.colors as mcolors
+import imageio
 
 # ========== CONFIG ==========
 epoch = 29
@@ -17,22 +18,24 @@ arg_value = 50
 frame_times = 8
 zoom = 0.7
 invert_colors = False
-n_videos = 1
+n_videos = 500
+subsample_videos = 1
 patch_shape = (50, 50, 3)
 patch_stride = [0.5, 0.5]
 aggregation = False
 aggregate_by = "frame"  # "frame" or "video"
 aggregation_mode = "mean"
+seed = 42
 
 features_dir = f"/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108-CMA_channel/extracted_features/epoch_{epoch}/"
-frame_root = "/data1/crops/random_walk_frames/IR_108_cm/train_256"
+frame_root = "/data1/crops/random_walk_frames/IR_108_cm_years-2013/train_256"
 
 if aggregation:
-    save_filename = f"{method}_{arg_name}_{arg_value}_epoch_{epoch}_{n_videos}_videos_agg_{aggregate_by}_{aggregation_mode}"
+    save_filename = f"{method}_{arg_name}_{arg_value}_epoch_{epoch}_seed_{seed}_{n_videos}_videos_agg_{aggregate_by}_{aggregation_mode}"
 else:
-    save_filename = f"{method}_{arg_name}_{arg_value}_epoch_{epoch}_{n_videos}_videos"
+    save_filename = f"{method}_{arg_name}_{arg_value}_epoch_{epoch}_seed_{seed}_{n_videos}_videos"
 csv_file = os.path.join(features_dir, f"{save_filename}.csv")
-output_dir = os.path.join(features_dir, f"frames_embedding_{method}_free")
+output_dir = os.path.join(features_dir, f"frames_embedding_{method}_frame_evolution")
 os.makedirs(output_dir, exist_ok=True)
 
 # ========== LOAD EMBEDDING DATA ==========
@@ -122,5 +125,102 @@ def plot_all_frames(df, out_path, frame_times, aggregation=None):
     plt.close()
     print(f"Saved combined plot to: {out_file}")
 
+
+def plot_frames_to_gif(
+    df,
+    plot_limits,
+    out_path,
+    frame_times,
+    mode="dots",  # "dots" or "images"
+    save_filename="tsne_viz",
+    dot_size=50,
+    zoom=0.7,
+    aggregation=False,
+    invert_colors=False
+):
+    os.makedirs(out_path, exist_ok=True)
+
+    # Assign color by video_idx
+    #video_indices = df['video_idx'].values
+    unique_videos = sorted(df['video_idx'].unique())
+    cmap = cm.get_cmap("tab10", len(unique_videos))
+    video_colors = {vid: cmap(i) for i, vid in enumerate(unique_videos)}
+    df['color'] = df['video_idx'].map(video_colors)
+    #print(df)
+
+    frame_images = []
+
+    for frame_idx in tqdm(range(frame_times), desc="Generating frames"):
+        fig, ax = plt.subplots(figsize=(8, 8))
+        #filer onli the frame idx needed
+        df_frame = df[df['frame_idx'] == frame_idx] 
+
+        if mode == "dots":
+            ax.scatter(
+                df_frame['tsne_x'],
+                df_frame['tsne_y'],
+                c=df_frame['color'].tolist(),
+                s=dot_size,
+                edgecolors='k',
+                linewidths=0.3
+            )
+
+        elif mode == "images":
+            for i, row in df_frame.iterrows():
+                img_path = os.path.join(row['path'], f"{frame_idx}.png")
+                if not os.path.exists(img_path):
+                    continue
+
+                try:
+                    full_img = Image.open(img_path).convert("RGB")
+                    if aggregation:
+                        patch = full_img
+                    else:
+                        patches = extract_patches(full_img)  # assumes this function exists
+                        node_idx = int(row['node_idx'])
+                        if node_idx >= len(patches):
+                            continue
+                        patch = Image.fromarray(patches[node_idx])
+
+                    if invert_colors:
+                        patch = ImageOps.invert(patch)
+
+                    imbox = OffsetImage(patch, zoom=zoom)
+                    ab = AnnotationBbox(imbox, (row['tsne_x'], row['tsne_y']), frameon=False)
+                    ax.add_artist(ab)
+
+                except Exception as e:
+                    print(f"Skipping {img_path}: {e}")
+
+        else:
+            raise ValueError("Invalid mode: use 'dots' or 'images'")
+
+        ax.set_xlim(plot_limits[0], plot_limits[1])
+        ax.set_ylim(plot_limits[2], plot_limits[3])
+        #ax.axis('off')
+        plt.tight_layout()
+        plt.title(f"Frame {frame_idx + 1}", fontsize=16, fontweight='bold')
+        frame_path = os.path.join(out_path, f"{save_filename}_{frame_idx:03d}.png")
+        fig.savefig(frame_path, dpi=150, bbox_inches='tight')
+        plt.close()
+
+        frame_images.append(Image.open(frame_path))
+
+    # Save final GIF
+    gif_path = os.path.join(out_path, f"{save_filename}_{len(unique_videos)}_videos_{mode}.gif")
+    imageio.mimsave(gif_path, frame_images, duration=1000)
+    print(f"Saved GIF to: {gif_path}")
+
 # ========== RUN ==========
-plot_all_frames(df, output_dir, frame_times, aggregation)
+#plot_all_frames(df, output_dir, frame_times, aggregation)
+
+#find random indeces to plot
+print(df)
+#find x and y limits
+plot_limits = (df['tsne_x'].min(), df['tsne_x'].max() , df['tsne_y'].min() , df['tsne_y'].max())
+
+unique_videos = sorted(df['video_idx'].unique())
+random_indices = np.random.choice(unique_videos, size=min(subsample_videos, len(unique_videos)), replace=False)
+df = df[df['video_idx'].isin(random_indices)]
+print(df)
+plot_frames_to_gif(df, plot_limits, output_dir,frame_times,mode='images')

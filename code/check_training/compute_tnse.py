@@ -20,7 +20,7 @@ features_dir = f"/data1/runs/videowalk/3_3x3_patches_8_frames_100x100_pixels_108
 subsample_num = 500  # number of unique video clips to highlight
 method = "tSNE"  # method to use for dimensionality reduction (tSNE, UMAP)
 
-aggregation = True
+aggregation = False
 aggregate_by = "video"  # "frame" or "video"
 aggregation_mode = "mean"  # "mean", "sum", or "concat"
 
@@ -93,9 +93,9 @@ df_selected["tsne_y"] = reduced[:, 1]
 
 # === SAVE t-SNE RESULTS as csv
 if aggregation:
-    save_filename = f"{method}_{arg_name}_{arg_value}_epoch_{epoch}_{subsample_num}_videos_agg_{aggregate_by}_{aggregation_mode}"
+    save_filename = f"{method}_{arg_name}_{arg_value}_epoch_{epoch}_seed_{n_seed}_{subsample_num}_videos_agg_{aggregate_by}_{aggregation_mode}"
 else:
-    save_filename = f"{method}_{arg_name}_{arg_value}_epoch_{epoch}_{subsample_num}_videos"
+    save_filename = f"{method}_{arg_name}_{arg_value}_epoch_{epoch}_seed_{n_seed}_{subsample_num}_videos"
 
 output_csv = os.path.join(features_dir, f"{save_filename}.csv")
 df_selected.to_csv(output_csv, index=False)
@@ -114,7 +114,7 @@ plt.figure(figsize=(10, 10))
 if len(selected_videos)>1:
     for i, video_id in enumerate(selected_videos):
         clip_data = df_selected[df_selected["video_idx"] == video_id]
-        plt.scatter(clip_data["tsne_x"], clip_data["tsne_y"], s=5, alpha=0.8)#label=f"Clip {video_id}")
+        plt.scatter(clip_data["tsne_x"], clip_data["tsne_y"], s=10, alpha=0.8)#label=f"Clip {video_id}")
 else:
     clip_data = df_selected[df_selected["video_idx"] == selected_videos[0]]
     #find number of unique

@@ -3,7 +3,7 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
-def compute_mean_std(root_dir, valid_exts={'.png'}):
+def compute_mean_std(root_dir, output_dir, valid_exts={'.png'}):
     pixel_sum = 0.0
     pixel_squared_sum = 0.0
     pixel_count = 0
@@ -14,7 +14,6 @@ def compute_mean_std(root_dir, valid_exts={'.png'}):
             path = os.path.join(subdir, fname)
             with Image.open(path) as img:
                 img = np.array(img).astype(np.float32) / 255.0  # Normalize to [0, 1]
-
                 pixel_sum += img.sum()
                 pixel_squared_sum += (img ** 2).sum()
                 pixel_count += img.size
@@ -29,11 +28,17 @@ def compute_mean_std(root_dir, valid_exts={'.png'}):
     print(f"Std: {std:.6f}")
 
     #save mean and std to a file in the current directory
-    with open('mean_std.txt', 'w') as f:
+    output_path = os.path.join(output_dir, 'mean_std.txt')
+    with open(output_path, 'w') as f:
         f.write(f"Mean: {mean:.6f}\n")
         f.write(f"Std: {std:.6f}\n")
-    print("Mean and Std saved to mean_std.txt")
+    print(f"Mean and Std saved to {output_path}")
     
 
 # Example usage:
-compute_mean_std('/data1/crops/random_walk_frames/IR_108/train_256')
+out_dir = '/data1/runs/videowalk/4_3x3_8_100x100_108-CMA_70k_500/'
+vid_dir = '/data1/crops/random_walk_frames/IR_108_cm_years-2013-2014-2015-2016-2017-2018-2019-2020/train_256'
+compute_mean_std(vid_dir, out_dir)
+
+
+# nohup 2845450
